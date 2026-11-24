@@ -33,8 +33,8 @@ const filmKey=t=>{const c=findCat(t);return c?c.id:"t:"+norm(t)};
 async function loadCatalog(){try{const r=await fetch("catalog.json?v="+Date.now());const j=await r.json();CAT=(j.films||[]).filter(f=>f&&f.t&&f.d);CAT_META={updated:j.updated||"",source:j.source||""}}catch(e){CAT=[]}
  $("#dl").innerHTML=CAT.map(c=>`<option value="${esc(c.t)}"></option>`).join("");
  $("#recNote").textContent=CAT.length?`作品データ：${fmtD(CAT_META.updated)}時点の上映中・公開予定 ${CAT.length}本（毎週木曜に自動更新）`:"作品データを読み込めませんでした"}
-async function loadData(){if(!sb)return;let r,w;try{[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")])}catch(e){showMsg("記録を読み込めませんでした（v3）："+(e?.message||e));return}
- if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした（v3）："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
+async function loadData(){if(!sb)return;let r,w;try{[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")])}catch(e){showMsg("記録を読み込めませんでした（v4）："+(e?.message||e));return}
+ if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした（v4）："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
  reviews=r.data.map(x=>({...x,date:x.date?String(x.date).slice(0,10):""}));wants=w.data;showMsg("");render()}
 const db={
  async saveReview(o){const{error}=await sb.from("reviews").upsert(o);if(error)throw error},
@@ -90,7 +90,7 @@ $("#fRate").innerHTML=[1,2,3,4,5].map(n=>`<button type="button" class="star" dat
 $("#fGenres").innerHTML=GENRES.map(g=>`<button type="button" class="chip" aria-pressed="false" data-g="${esc(g)}">${esc(g)}</button>`).join("");
 function paintForm(){document.querySelectorAll(".star").forEach(b=>b.classList.toggle("on",+b.dataset.n<=rating));document.querySelectorAll("#fGenres .chip").forEach(b=>b.setAttribute("aria-pressed",selG.has(b.dataset.g)))}
 const todayStr=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
-function openForm(r,cat,pre){editing=r||null;$("#fStatus").textContent="";const src=r||pre;$("#f").hidden=false;$("#fTitle").value=src?src.title:(cat?cat.t:"");$("#fDate").value=src?src.date:todayStr();$("#fPlace").value=src?src.place||"":"";$("#fPeople").value=src?(src.people||[]).join("、"):(cat?cat.p.join("、"):"");$("#fText").value=r?r.text||"":"";rating=r?r.rating:0;selG=new Set(src?src.genres||[]:(cat?cat.g:[]));paintForm();matchHint();$("#fTitle").focus();$("#f").scrollIntoView({block:"start",behavior:"smooth"})}
+function openForm(r,cat,pre){editing=r||null;$("#fStatus").textContent="";const src=r||pre;$("#f").hidden=false;$("#fTitle").value=src?src.title:(cat?cat.t:"");$("#fDate").value=src?src.date:todayStr();$("#fPlace").value=src?src.place||"":LS.get("cine_place","");$("#fMore").open=false;$("#fPeople").value=src?(src.people||[]).join("、"):(cat?cat.p.join("、"):"");$("#fText").value=r?r.text||"":"";rating=r?r.rating:0;selG=new Set(src?src.genres||[]:(cat?cat.g:[]));paintForm();matchHint();$("#fTitle").focus();$("#f").scrollIntoView({block:"start",behavior:"smooth"})}
 function matchHint(){const c=findCat($("#fTitle").value);$("#fMatch").textContent=c?`作品データと一致：${c.d.slice(0,4)}年 ${c.o}`:""}
 $("#fTitle").addEventListener("input",()=>{const c=findCat($("#fTitle").value);matchHint();if(c&&!editing){if(!selG.size){selG=new Set(c.g.filter(g=>GENRES.includes(g)));paintForm()}if(!$("#fPeople").value)$("#fPeople").value=c.p.join("、")}});
 $("#fRate").addEventListener("click",e=>{const b=e.target.closest(".star");if(b){rating=+b.dataset.n;paintForm()}});
@@ -99,8 +99,8 @@ $("#newBtn").addEventListener("click",()=>openForm());
 $("#cancel").addEventListener("click",()=>{$("#f").hidden=true;editing=null});
 const withTimeout=(p,ms=15000)=>Promise.race([p,new Promise((_,rj)=>setTimeout(()=>rj({message:"通信がタイムアウトしました"}),ms))]);
 $("#f").addEventListener("submit",async e=>{e.preventDefault();const hint=$("#fStatus");if(!$("#fTitle").value.trim()){hint.textContent="作品名を入れてください";return}if(!rating){hint.textContent="評価の★を選んでください";return}hint.textContent="保存しています…";
- const o={id:editing?editing.id:"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),by:me,title:$("#fTitle").value.trim(),date:$("#fDate").value||null,place:$("#fPlace").value.trim(),rating,genres:[...selG],people:$("#fPeople").value.split(/[、,，]/).map(s=>s.trim()).filter(Boolean),text:$("#fText").value.trim(),updated_at:new Date().toISOString()};
- const btn=$("#f").querySelector('button[type=submit]');if(btn)btn.disabled=true;
+ const o={id:editing?editing.id:"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),by:me,title:$("#fTitle").value.trim(),date:$("#fDate").value||todayStr(),place:$("#fPlace").value.trim(),rating,genres:[...selG],people:$("#fPeople").value.split(/[、,，]/).map(s=>s.trim()).filter(Boolean),text:$("#fText").value.trim(),updated_at:new Date().toISOString()};
+ LS.set("cine_place",o.place);const btn=$("#f").querySelector('button[type=submit]');if(btn)btn.disabled=true;
  try{await withTimeout(db.saveReview(o));hint.textContent="";const c=findCat(o.title);const w=c&&wants.find(v=>v.cid===c.id);if(w&&(w.by||[]).includes(me)){const rest=w.by.filter(id=>id!==me);rest.length?await db.saveWant({...w,by:rest}):await db.delWant(w.cid)}$("#f").hidden=true;editing=null;await loadData()}catch(err){hint.textContent="保存できませんでした："+[err?.code,err?.message,err?.details,err?.hint].filter(Boolean).join(" / ")}
  if(btn)btn.disabled=false});
 $("#q").addEventListener("input",renderLog);
