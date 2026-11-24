@@ -34,7 +34,7 @@ async function loadCatalog(){try{const r=await fetch("catalog.json?v="+Date.now(
  $("#dl").innerHTML=CAT.map(c=>`<option value="${esc(c.t)}"></option>`).join("");
  $("#recNote").textContent=CAT.length?`作品データ：${fmtD(CAT_META.updated)}時点の上映中・公開予定 ${CAT.length}本（毎週木曜に自動更新）`:"作品データを読み込めませんでした"}
 async function loadData(){if(!sb)return;const[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")]);
- if(r.error||w.error){showMsg("記録を読み込めませんでした。通信状況を確認してください。");return}
+ if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
  reviews=r.data.map(x=>({...x,date:x.date?String(x.date).slice(0,10):""}));wants=w.data;showMsg("");render()}
 const db={
  async saveReview(o){const{error}=await sb.from("reviews").upsert(o);if(error)throw error},
@@ -100,7 +100,7 @@ $("#cancel").addEventListener("click",()=>{$("#f").hidden=true;editing=null});
 $("#f").addEventListener("submit",async e=>{e.preventDefault();if(!rating){$("#fMatch").textContent="評価の★を選んでください";return}
  const o={id:editing?editing.id:"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),by:me,title:$("#fTitle").value.trim(),date:$("#fDate").value||null,place:$("#fPlace").value.trim(),rating,genres:[...selG],people:$("#fPeople").value.split(/[、,，]/).map(s=>s.trim()).filter(Boolean),text:$("#fText").value.trim(),updated_at:new Date().toISOString()};
  if(!o.title)return;const btn=e.submitter;if(btn)btn.disabled=true;
- try{await db.saveReview(o);const c=findCat(o.title);const w=c&&wants.find(v=>v.cid===c.id);if(w&&(w.by||[]).includes(me)){const rest=w.by.filter(id=>id!==me);rest.length?await db.saveWant({...w,by:rest}):await db.delWant(w.cid)}$("#f").hidden=true;editing=null;await loadData()}catch(err){$("#fMatch").textContent="保存できませんでした。通信状況を確認してもう一度お試しください。"}
+ try{await db.saveReview(o);const c=findCat(o.title);const w=c&&wants.find(v=>v.cid===c.id);if(w&&(w.by||[]).includes(me)){const rest=w.by.filter(id=>id!==me);rest.length?await db.saveWant({...w,by:rest}):await db.delWant(w.cid)}$("#f").hidden=true;editing=null;await loadData()}catch(err){$("#fMatch").textContent="保存できませんでした："+[err?.code,err?.message,err?.details,err?.hint].filter(Boolean).join(" / ")}
  if(btn)btn.disabled=false});
 $("#q").addEventListener("input",renderLog);
 $("#whoSeg").addEventListener("click",e=>{const b=e.target.closest("[data-who]");if(!b)return;who=b.dataset.who;renderLog()});
