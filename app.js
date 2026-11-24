@@ -64,7 +64,7 @@ function reasonText(x){const L=[];if(x.both)L.push("ふたりとも好みに合�
 function whoChip(id){return `<span class="who ${id===myId()?"w-me":"w-pt"}">${esc(nameOf(id))}</span>`}
 function renderStats(){const y=String(today.getFullYear());const list=shown();const mine=list.filter(r=>r.by===myId());const yr=mine.filter(r=>(r.date||"").startsWith(y)).length;const films=new Set(list.filter(r=>(r.date||"").startsWith(y)).map(r=>filmKey(r.title))).size;const avg=mine.length?(mine.reduce((s,r)=>s+(r.rating||0),0)/mine.length).toFixed(1):"–";const now=CAT.filter(c=>status(c).k==="now").length;
  $("#stats").innerHTML=`<span><b>${yr}</b>本 ${y}年に自分が鑑賞</span><span><b>${films}</b>本 ふたりで記録</span><span><b>${avg}</b>自分の平均</span><span><b>${now}</b>本 上映中</span>`;
- $("#meRow").innerHTML=me?`<span>${esc(nameOf(me))}として記録中</span><button class="btn small" id="switchMe">切り替え</button><button class="btn small" id="logout">ログアウト</button>`:""}
+ $("#meRow").innerHTML=me?`<span>${esc(nameOf(me))}として記録中</span><button class="btn small" id="switchMe">切り替え</button>`:""}
 function stubHTML(r){const c=findCat(r.title);const tags=[...new Set([...(r.genres||[]),...(c?c.g:[])])];const d=day(r.date);const key=filmKey(r.title);
  const others=shown().filter(o=>o.id!==r.id&&o.by!==r.by&&filmKey(o.title)===key);const mineR=r.by===myId()&&!r.sample;
  const canAlso=!r.sample&&r.by!==me&&!shown().some(o=>o.by===me&&filmKey(o.title)===key);
@@ -124,19 +124,21 @@ function showTab(n){for(const k of["log","rec","want"]){$("#v-"+k).hidden=k!==n;
 $("#t-log").addEventListener("click",()=>showTab("log"));$("#t-rec").addEventListener("click",()=>showTab("rec"));$("#t-want").addEventListener("click",()=>showTab("want"));
 
 // ---------- login ----------
-function showLogin(needPass){$("#login").hidden=false;$("#app").hidden=true;$("#passRow").hidden=!needPass;
+function showLogin(){$("#login").hidden=false;$("#app").hidden=true;
  $("#whoPick").innerHTML=MEMBERS.map(m=>`<button type="button" class="chip" data-me="${esc(m.id)}" aria-pressed="${me===m.id}">${esc(m.name)}</button>`).join("")}
 function showApp(){$("#login").hidden=true;$("#app").hidden=false;render();loadData();const h=location.hash.slice(1);if(["log","rec","want"].includes(h))showTab(h)}
 $("#whoPick").addEventListener("click",e=>{const b=e.target.closest("[data-me]");if(!b)return;me=b.dataset.me;LS.set("cine_me",me);document.querySelectorAll("#whoPick .chip").forEach(x=>x.setAttribute("aria-pressed",x===b))});
-$("#loginForm").addEventListener("submit",async e=>{e.preventDefault();const err=$("#loginErr");err.textContent="";if(!me){err.textContent="どちらが使うか選んでください";return}
- if(!$("#passRow").hidden){const{error}=await sb.auth.signInWithPassword({email:CFG.LOGIN_EMAIL,password:$("#pass").value});if(error){err.textContent="合言葉が違います";return}}
- showApp()});
-$("#meRow").addEventListener("click",async e=>{if(e.target.closest("#switchMe")){showLogin(false)}if(e.target.closest("#logout")){await sb.auth.signOut();reviews=[];wants=[];showLogin(true)}});
+$("#loginForm").addEventListener("submit",e=>{e.preventDefault();const err=$("#loginErr");err.textContent="";if(!me){err.textContent="どちらが使うか選んでください";return}showApp()});
+$("#meRow").addEventListener("click",e=>{if(e.target.closest("#switchMe"))showLogin()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!$("#app").hidden)loadData()});
 window.addEventListener("hashchange",()=>{const k=location.hash.slice(1);if(["log","rec","want"].includes(k))showTab(k)});
 
 (async()=>{await loadCatalog();
+ // 専用リンク（?k=…）で開いたら合言葉キーをこの端末に保存し、URLからは消す
+ const u=new URL(location.href);const k=u.searchParams.get("k");if(k){LS.set("cine_key",k);u.searchParams.delete("k");try{history.replaceState(null,"",u.pathname+u.search+u.hash)}catch(e){}}
+ const key=LS.get("cine_key","");
  if(!window.supabase||!CFG.SUPABASE_URL||CFG.SUPABASE_URL.includes("xxxx")){$("#login").hidden=false;$("#loginForm").hidden=true;$("#setupNote").hidden=false;return}
- sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY);
- const{data}=await sb.auth.getSession();if(data.session&&me)showApp();else showLogin(!data.session)})();
+ if(!key){$("#login").hidden=false;$("#loginForm").hidden=true;$("#keyNote").hidden=false;return}
+ sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:false},global:{headers:{"x-family-key":key}}});
+ if(me)showApp();else showLogin()})();
 }

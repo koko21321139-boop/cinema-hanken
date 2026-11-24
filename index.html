@@ -114,11 +114,11 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <body>
 <section id="login" class="login" hidden>
 <h1 style="color:var(--red)">シネマ半券帳</h1>
+<p class="note" id="keyNote" hidden>ふたり専用のリンク（末尾に ?k= が付いたURL）から一度開いてください。以後はこの端末で普通に開けます。</p>
 <p class="note" id="setupNote" hidden>config.js の設定がまだです。README の手順で Supabase の値を入れてください。</p>
 <form id="loginForm">
 <label>どちらが使いますか</label>
 <div class="chips" id="whoPick"></div>
-<div id="passRow"><label for="pass">合言葉</label><input type="text" id="pass" autocomplete="current-password" style="-webkit-text-security:disc"></div>
 <p class="hint" id="loginErr" role="alert"></p>
 <div class="acts"><button type="submit" class="btn">はじめる</button></div>
 </form>

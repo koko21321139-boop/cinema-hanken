@@ -1,4 +1,6 @@
 -- Supabase の SQL Editor に貼り付けて「Run」してください。
+-- 先に下の 'ここに専用キー' を、ふたりだけの長いランダムな文字列（20文字以上）に書き換えてください。
+-- このキーは GitHub には置かず、Supabase の中と「ふたり専用リンク」の中だけに入ります。
 
 create table if not exists public.reviews (
   id         text primary key,
@@ -20,11 +22,16 @@ create table if not exists public.wants (
   added_at   timestamptz default now()
 );
 
+-- 専用リンクのキー（アプリが x-family-key ヘッダーで送る）が一致するときだけ読み書きできる
+create or replace function public.family_ok() returns boolean
+language sql stable as $$
+  select coalesce(current_setting('request.headers', true)::json ->> 'x-family-key', '') = 'ここに専用キー'
+$$;
+
 alter table public.reviews enable row level security;
 alter table public.wants   enable row level security;
 
--- ログインした人（＝合言葉を知っているふたり）だけが読み書きできる
-drop policy if exists "signed in" on public.reviews;
-drop policy if exists "signed in" on public.wants;
-create policy "signed in" on public.reviews for all to authenticated using (true) with check (true);
-create policy "signed in" on public.wants   for all to authenticated using (true) with check (true);
+drop policy if exists "family" on public.reviews;
+drop policy if exists "family" on public.wants;
+create policy "family" on public.reviews for all to anon, authenticated using (public.family_ok()) with check (public.family_ok());
+create policy "family" on public.wants   for all to anon, authenticated using (public.family_ok()) with check (public.family_ok());

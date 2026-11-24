@@ -3,24 +3,20 @@
 夫婦で使う、映画館で観た映画の感想記録アプリ。★評価と感想から、上映中・公開予定の作品をおすすめ順に並べます。
 
 - 画面：GitHub Pages（URLを開くだけ。スマホのホーム画面にも置ける）
-- 記録の保存：Supabase（無料枠）。ふたりの合言葉でログイン
+- 記録の保存：Supabase（無料枠）。ログインなし。「ふたり専用リンク」で一度開いた端末だけが読み書きできる
 - 上映情報：GitHub Actions が毎週木曜 19:45 に TMDB から取得して `catalog.json` を更新
 
 ## 初回の設定（30分ほど）
 
 ### 1. Supabase（記録の保存先）
 1. https://supabase.com でアカウントを作り、「New project」を作る（リージョンは Tokyo）。
-2. 左メニュー「SQL Editor」→ `supabase/schema.sql` の中身を貼り付けて「Run」。
-3. 「Authentication」→「Users」→「Add user」→「Create new user」
-   - Email：`config.js` の `LOGIN_EMAIL` と同じもの（実在しなくてよい。例 `cinema@example.com`）
-   - Password：**ふたりの合言葉**（8文字以上がおすすめ）
-   - 「Auto Confirm User」にチェック
-4. 「Authentication」→「Sign In / Providers」→「Allow new users to sign up」を**オフ**（他人が登録できないように）。
-5. 「Project Settings」→「API」で **Project URL** と **anon public key** をコピー。
+2. ふたり専用のキー（20文字以上のランダムな英数字）を決める。
+3. 左メニュー「SQL Editor」→ `supabase/schema.sql` を貼り付け、`ここに専用キー` を2で決めたキーに書き換えて「Run」。
+4. 「Project Settings」→「API」で **Project URL** と **anon public key** をコピー。
 
 ### 2. config.js を書き換える
-`SUPABASE_URL`、`SUPABASE_ANON_KEY`、`LOGIN_EMAIL`、`MEMBERS` の名前（夫・妻など）を入れる。
-anon key は公開されても大丈夫な鍵です（合言葉でログインしないとデータは読めません）。
+`SUPABASE_URL`、`SUPABASE_ANON_KEY`、`MEMBERS` の名前（夫・妻など）を入れる。
+anon key は公開されても大丈夫な鍵です。専用キーがないとデータは読み書きできません。**専用キーは config.js にもGitHubにも書かないでください。**
 
 ### 3. TMDB（上映情報）
 1. https://www.themoviedb.org でアカウントを作り、「設定」→「API」で API を申請（個人・非商用）。
@@ -34,7 +30,9 @@ anon key は公開されても大丈夫な鍵です（合言葉でログイン�
 数分後に `https://<ユーザー名>.github.io/cinema-hanken/` で開けます。
 
 ### 5. 使い始める
-- URL を開き、「夫／妻」を選んで合言葉を入力。端末ごとに一度だけでOK。
+- ふたり専用リンク `https://<ユーザー名>.github.io/cinema-hanken/?k=<専用キー>` をLINEなどで奥さまに送る。
+- 各端末でそのリンクを一度開き、「夫／妻」を選ぶ。以後は `?k=` なしの普通のURLやホーム画面から開けます。
+- リンクが他人に渡ると読み書きされてしまうので、そのときは schema.sql のキーを変えて再実行し、新しいリンクを送り直してください。
 - iPhone：Safari の共有ボタン →「ホーム画面に追加」。Android：Chrome のメニュー →「ホーム画面に追加」。
 
 ## ファイル
