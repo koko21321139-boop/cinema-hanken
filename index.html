@@ -118,7 +118,7 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <h1 style="color:var(--red)">シネマ半券帳</h1>
 <p class="note" id="keyNote" hidden>ふたり専用のリンク（末尾に ?k= が付いたURL）から一度開いてください。以後はこの端末で普通に開けます。</p>
 <p class="note" id="setupNote" hidden>config.js の設定がまだです。README の手順で Supabase の値を入れてください。</p>
-<form id="loginForm">
+<form id="loginForm" novalidate>
 <label>どちらが使いますか</label>
 <div class="chips" id="whoPick"></div>
 <p class="hint" id="loginErr" role="alert"></p>
@@ -140,7 +140,7 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <p class="msg" id="msg" hidden></p>
 <section id="v-log">
 <div class="bar"><button class="btn" id="newBtn">＋ 感想を書く</button><input type="text" id="q" placeholder="記録を検索" style="flex:1;max-width:280px" aria-label="記録を検索"><div class="seg" id="whoSeg"></div></div>
-<form id="f" hidden>
+<form id="f" hidden novalidate>
 <label for="fTitle">作品名</label>
 <input type="text" id="fTitle" list="dl" autocomplete="off" required placeholder="例：ゴジラ-0.0">
 <datalist id="dl"></datalist>
