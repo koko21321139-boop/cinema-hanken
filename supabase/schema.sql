@@ -35,3 +35,8 @@ drop policy if exists "family" on public.reviews;
 drop policy if exists "family" on public.wants;
 create policy "family" on public.reviews for all to anon, authenticated using (public.family_ok()) with check (public.family_ok());
 create policy "family" on public.wants   for all to anon, authenticated using (public.family_ok()) with check (public.family_ok());
+
+-- アプリ（anon）から表を使えるようにする（「Grant API access…」をオフで作った場合も動くように）
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.reviews, public.wants to anon, authenticated;
+grant execute on function public.family_ok() to anon, authenticated;
