@@ -149,11 +149,8 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <div class="rate" id="fRate"></div>
 <label for="fText">ひとこと（なくてもOK）</label>
 <textarea id="fText" rows="2" style="min-height:64px" placeholder="良かったところ、気になったところ"></textarea>
-<details id="fMore"><summary>鑑賞日・劇場・ジャンルなど（自動で入ります）</summary>
-<div class="row2">
-<div><label for="fDate">鑑賞日</label><input type="date" id="fDate"></div>
-<div><label for="fPlace">劇場・スクリーン</label><input type="text" id="fPlace" placeholder="例：TOHOシネマズ IMAX"></div>
-</div>
+<details id="fMore"><summary>鑑賞日・ジャンルなど（自動で入ります）</summary>
+<label for="fDate">鑑賞日</label><input type="date" id="fDate" style="max-width:220px">
 <label>ジャンル</label>
 <div class="chips" id="fGenres"></div>
 <label for="fPeople">監督・出演（読点区切り）</label>
@@ -178,7 +175,7 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <footer>作品情報・ポスター画像は TMDB API を利用しています（This product uses the TMDB API but is not endorsed or certified by TMDB.）</footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="config.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
