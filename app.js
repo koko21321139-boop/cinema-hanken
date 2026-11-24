@@ -33,8 +33,8 @@ const filmKey=t=>{const c=findCat(t);return c?c.id:"t:"+norm(t)};
 async function loadCatalog(){try{const r=await fetch("catalog.json?v="+Date.now());const j=await r.json();CAT=(j.films||[]).filter(f=>f&&f.t&&f.d);CAT_META={updated:j.updated||"",source:j.source||""}}catch(e){CAT=[]}
  $("#dl").innerHTML=CAT.map(c=>`<option value="${esc(c.t)}"></option>`).join("");
  $("#recNote").textContent=CAT.length?`作品データ：${fmtD(CAT_META.updated)}時点の上映中・公開予定 ${CAT.length}本（毎週木曜に自動更新）`:"作品データを読み込めませんでした"}
-async function loadData(){if(!sb)return;let r,w;try{[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")])}catch(e){showMsg("記録を読み込めませんでした（v5）："+(e?.message||e));return}
- if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした（v5）："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
+async function loadData(){if(!sb)return;let r,w;try{[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")])}catch(e){showMsg("記録を読み込めませんでした（v6）："+(e?.message||e));return}
+ if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした（v6）："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
  reviews=r.data.map(x=>({...x,date:x.date?String(x.date).slice(0,10):""}));wants=w.data;showMsg("");render()}
 const db={
  async saveReview(o){const{error}=await sb.from("reviews").upsert(o);if(error)throw error},
@@ -134,12 +134,13 @@ $("#meRow").addEventListener("click",e=>{if(e.target.closest("#switchMe"))showLo
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&!$("#app").hidden)loadData()});
 window.addEventListener("hashchange",()=>{const k=location.hash.slice(1);if(["log","rec","want"].includes(k))showTab(k)});
 
+$("#keyForm").addEventListener("submit",e=>{e.preventDefault();let v=$("#keyIn").value.trim();const m=v.match(/[?&]k=([^&#\s]+)/);if(m)v=decodeURIComponent(m[1]);if(!v)return;LS.set("cine_key",v);location.reload()});
 (async()=>{await loadCatalog();
  // 専用リンク（?k=…）で開いたら合言葉キーをこの端末に保存し、URLからは消す
  const u=new URL(location.href);const k=u.searchParams.get("k");if(k){LS.set("cine_key",k);u.searchParams.delete("k");try{history.replaceState(null,"",u.pathname+u.search+u.hash)}catch(e){}}
  const key=LS.get("cine_key","");
  if(!window.supabase||!CFG.SUPABASE_URL||CFG.SUPABASE_URL.includes("xxxx")){$("#login").hidden=false;$("#loginForm").hidden=true;$("#setupNote").hidden=false;return}
- if(!key){$("#login").hidden=false;$("#loginForm").hidden=true;$("#keyNote").hidden=false;return}
+ if(!key){$("#login").hidden=false;$("#loginForm").hidden=true;$("#keyForm").hidden=false;return}
  sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:false},global:{headers:{"x-family-key":key}}});
  if(me)showApp();else showLogin()})();
 }

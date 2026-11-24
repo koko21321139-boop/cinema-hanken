@@ -116,7 +116,12 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <body>
 <section id="login" class="login" hidden>
 <h1 style="color:var(--red)">シネマ半券帳</h1>
-<p class="note" id="keyNote" hidden>ふたり専用のリンク（末尾に ?k= が付いたURL）から一度開いてください。以後はこの端末で普通に開けます。</p>
+<form id="keyForm" hidden novalidate>
+<label for="keyIn">専用キー</label>
+<p class="hint">ふたり専用リンクの「?k=」より後ろの文字（リンクごと貼り付けてもOK）を入れてください。最初の一度だけです。</p>
+<input type="text" id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false">
+<div class="acts"><button type="submit" class="btn">はじめる</button></div>
+</form>
 <p class="note" id="setupNote" hidden>config.js の設定がまだです。README の手順で Supabase の値を入れてください。</p>
 <form id="loginForm" novalidate>
 <label>どちらが使いますか</label>
@@ -175,7 +180,7 @@ footer{max-width:980px;margin:0 auto;padding:0 max(4vw,16px) 40px;font-size:13px
 <footer>作品情報・ポスター画像は TMDB API を利用しています（This product uses the TMDB API but is not endorsed or certified by TMDB.）</footer>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="config.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
