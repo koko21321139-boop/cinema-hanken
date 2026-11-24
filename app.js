@@ -33,8 +33,8 @@ const filmKey=t=>{const c=findCat(t);return c?c.id:"t:"+norm(t)};
 async function loadCatalog(){try{const r=await fetch("catalog.json?v="+Date.now());const j=await r.json();CAT=(j.films||[]).filter(f=>f&&f.t&&f.d);CAT_META={updated:j.updated||"",source:j.source||""}}catch(e){CAT=[]}
  $("#dl").innerHTML=CAT.map(c=>`<option value="${esc(c.t)}"></option>`).join("");
  $("#recNote").textContent=CAT.length?`作品データ：${fmtD(CAT_META.updated)}時点の上映中・公開予定 ${CAT.length}本（毎週木曜に自動更新）`:"作品データを読み込めませんでした"}
-async function loadData(){if(!sb)return;const[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")]);
- if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
+async function loadData(){if(!sb)return;let r,w;try{[r,w]=await Promise.all([sb.from("reviews").select("*"),sb.from("wants").select("*")])}catch(e){showMsg("記録を読み込めませんでした（v3）："+(e?.message||e));return}
+ if(r.error||w.error){const e=r.error||w.error;showMsg("記録を読み込めませんでした（v3）："+[e.code,e.message,e.hint].filter(Boolean).join(" / "));return}
  reviews=r.data.map(x=>({...x,date:x.date?String(x.date).slice(0,10):""}));wants=w.data;showMsg("");render()}
 const db={
  async saveReview(o){const{error}=await sb.from("reviews").upsert(o);if(error)throw error},
